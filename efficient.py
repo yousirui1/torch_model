@@ -19,14 +19,14 @@ class EffNetAttention(nn.Module):
             self.attention = MHeadAttention(
                     self.middim[b],
                     label_dim,
-                    att_activation = 'sigmoid',
-                    cla_activation = 'sigmoid')
+                    att_activation = activation,
+                    cla_activation = activation)
         elif head_num == 1:
              self.attention = Attention(
                     self.middim[b],
                     label_dim,
-                    att_activation = 'sigmoid',
-                    cla_activation = 'sigmoid')
+                    att_activation = activation,
+                    cla_activation = activation)
         elif head_num == 0:
             self.attention = MeanPooling(
                     self.middim[b],
