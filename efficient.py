@@ -37,18 +37,27 @@ class EffNetAttention(nn.Module):
             raise ValueError('Attention head must be integer >= 0, 0=mean pooling, 1=single-head attention, >1=multi-head attention.');
 
         self.avgpool = nn.AvgPool2d((4, 1))
-        self.effnet._fc = nn.Identity()
+        #self.effnet._fc = nn.Identity()
+        num_ftrs = self.effnet._fc.in_features
+        self.effnet._fc = torch.nn.Linear(num_ftrs, label_dim)
 
     def forward(self, x):
         #x = x.unsqueeze(1)
         x = x.view(self.input_shape[0], 1, self.input_shape[1], self.input_shape[2])
         x = x.transpose(2, 3)
-
-        x = self.effnet.extract_features(x)
-        x = self.avgpool(x)
-        x = x.transpose(2, 3)
-        out, norm_att = self.attention(x)
+        
+        if head_num == -1:
+            if self.activation == 'softmax':
+                out = torch.nn.functional.softmax(self.effnet(x), dim=1)
+            elif self.activation == 'sigmoid':
+                out = torch.sigmoid(self.effnet(x))
+        else:
+            x = self.effnet.extract_features(x)
+            x = self.avgpool(x)
+            x = x.transpose(2, 3)
+            out, norm_att = self.attention(x)
         return out
+
 
 
 if __name__ ==  '__main__':
