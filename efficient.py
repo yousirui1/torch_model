@@ -46,7 +46,7 @@ class EffNetAttention(nn.Module):
         x = x.view(self.input_shape[0], 1, self.input_shape[1], self.input_shape[2])
         x = x.transpose(2, 3)
         
-        if head_num == 0:
+        if self.head_num == 0:
             if self.activation == 'softmax':
                 out = torch.nn.functional.softmax(self.effnet(x), dim=1)
             elif self.activation == 'sigmoid':
