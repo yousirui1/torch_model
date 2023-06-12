@@ -10,6 +10,7 @@ class EffNetAttention(nn.Module):
         super(EffNetAttention,self).__init__()
         self.middim = [1280, 1280, 1408, 1536, 1792, 2048, 2304, 2560]
         self.input_shape = input_shape
+        self.head_num = head_num
         if pretrain == False:
             self.effnet = EfficientNet.from_name('efficientnet-b'+str(b), in_channels=1)
         else:
