@@ -1,9 +1,9 @@
 import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
 
-class efficientt(nn.Module):
+class efficient(nn.Module):
     def __init__(self, b=0, pretrain=False):
-        super(efficientt,self).__init__(), 
+        super(efficient,self).__init__(), 
         if pretrain == False:
             self.effnet = EfficientNet.from_name('efficientnet-b'+str(b), in_channels=1)
         else:
