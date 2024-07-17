@@ -4,8 +4,6 @@ import torch.nn  as nn
 from torchvision.models import mobilenet_v2
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-os.sys.path.append(parent_dir)
 
 from .efficient import efficient
 from .nearfield.fsmn import FSMN
@@ -39,13 +37,13 @@ def get_model(config, pretrain=False):
     
     if config.backbone == 'fsmn':
         backbone = FSMN(config.idim, 140, 4, 250, config.hdim, 10, 2, 1, 1, 140, config.odim)
-        #pretrain_model_path = parent_dir + '/pretrained_models/fsmn.pth'
+        #pretrain_model_path = current_dir + '/pretrained_models/fsmn.pth'
     elif config.backbone == 'yamnet':
         backbone = YAMNet()
-        pretrain_model_path = parent_dir + '/models/pretrained_models/yamnet.pth'
+        pretrain_model_path = current_dir + '/pretrained_models/yamnet.pth'
     elif config.backbone == 'efficient':
         backbone = efficient(2, False)
-        pretrain_model_path = parent_dir + '/models/pretrained_models/fsd_efficient.pth'
+        pretrain_model_path = current_dir + '/pretrained_models/fsd_efficient.pth'
     elif config.backbone == 'mobilenet_v2':
         backbone = mobilenet_v2(weights=None)
         backbone.features[0][0] = torch.nn.Conv2d(1, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
