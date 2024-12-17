@@ -1,58 +1,111 @@
 import torch
 import torch.nn as nn
 from typing import Dict, Optional, Tuple
+from sanm.encoder import SANMEncoder
+from yamnet import YAMNet
+from efficient import Efficient
+from pool import Pooling
+from torchinfo import summary
+from utils import *
 
 class Model(nn.Module):
     def __init__(
         self, 
         idim: int,
         odim: int,
-        hdim: int,
-        global_cmvn: Optional[nn.Module],
-        preprocessing: Optional[nn.Module],
-        backbone: nn.Module,
+        embedding: nn.Module,
         classifier: nn.Module,
-        attention: nn.Module,
         activation: nn.Module,
-        is_use_cache: bool = False,
+        #is_use_cache: bool = False,
     ):
         super().__init__()
         self.idim = idim
         self.odim = odim
-        self.hdim = hdim
-        self.global_cmvn = global_cmvn
-        self.preprocessing = preprocessing
-        self.backbone = backbone
+        self.embedding = embedding
         self.classifier = classifier
-        self.attention = attention
         self.activation = activation
-        self.is_use_cache = is_use_cache
 
     def forward(
         self,
         x: torch.Tensor,
-        in_cache: torch.Tensor=torch.zeros(0, 0, 0, 0, dtype=torch.float)
+        n_wins: torch.Tensor = None,  # data length mask compute
+        #in_cache: torch.Tensor = torch.zeros(0, 0, 0, 0, dtype=torch.float)
     ):
-        if self.global_cmvn is not None:
-            x = self.global_cmvn(x)
-        if self.preprocessing is not None:
-            x = self.preprocessing(x)
+        #print(n_wins)
+        #print(torch.tensor([x.shape[1]]))
+        #x_length = torch
+        x_length = []
 
-        if self.is_use_cache:
-            x, out_cache = self.backbone(x, in_cache)
-        else:
-            x = self.backbone(x)
+        for i in range(x.shape[0]):
+            x_length.append(torch.tensor(x.shape[1]))
+
+        #x_length = torch.tensor(x_length)
+
+        if self.embedding is not None:
+            x = self.embedding(x, x_length)
+            if isinstance(x, tuple):
+                x = x[0]
 
         if self.classifier is not None:
-            x = self.classifier(x)
+            #if n_wins is None:
+                #n_wins = torch.tensor[]
 
-        if self.attention is not None:
-            x = self.attention(x)
+            if isinstance(self.classifier, nn.ModuleList):
+                out = [mod(x, n_wins) for mod in self.classifier]
+                x = torch.cat(out, dim=1)
+            else:
+                x = self.classifier(x)
 
         if self.activation is not None:
             x = self.activation(x)
+        return x
 
-        if self.is_use_cache:
-            return x, out_cache
+def get_model(batch_size, 
+                idim, 
+                odim, 
+                embedding = None, 
+                embedding_conf = None,
+                classifier = None, 
+                classifier_conf = None,
+                activation = None
+            ):
+
+    pre_weight_path = None
+
+    if embedding == "fsmn":
+        embedding = FSMN()
+    elif embedding == "yamnet":
+        embedding = YAMNet(**embedding_conf)
+    elif embedding == "efficient":
+        embedding = Efficient(**embedding_conf)
+    elif embedding == "autoencoder":
+        embedding = Autoencoder(**embedding_conf)
+    elif embedding == "paraformer":
+        embedding = Paraformer(**embedding_conf)
+    elif embedding == "SANMEncoder":
+        embedding = SANMEncoder(input_size= idim, **embedding_conf)
+    elif embedding == "ParaformerSANMDecoder":
+        embedding = ParaformerSANMDecoder(**embedding_conf)
+
+    #if embedding_conf.get("") 
+        #backbone.load_state_dict(torch.load(pretrain_model_path, map_location='cpu'))
+
+    if classifier == 'linear':
+        classifier = nn.Linear(backbone.classifier.in_features, config.odim, bias=True)
+    elif classifier == 'pool':
+        classifier = Pooling(**classifier_conf).get_model()
+    elif classifier == 'attention':
+        if classifier_conf.get("att_head", 1) > 1:
+            classifier = MHeadAttention(**classifier_conf)
         else:
-            return x 
+            classifier = Attention(**classifier_conf)
+    
+    if activation == 'softmax':
+        activation = torch.torch.nn.functional.softmax
+    elif activation == 'sigmoid':
+        activation = torch.sigmoid
+    
+    model = Model(idim, odim, embedding, classifier, activation)
+    summary(model, input_shape=[(1, 100, idim), (10)])
+    return model
+
