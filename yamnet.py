@@ -4,9 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import hub
-#from .attention import  MHeadAttention
-#from utils import get_current_path
-
 
 ckpt_url = "https://github.com/w-hc/torch_audioset/releases/download/v0.1/yamnet.pth"
 
@@ -116,7 +113,7 @@ class SeparableConv(nn.Module):
 
 
 class YAMNet(nn.Module):
-    def __init__(self):
+    def __init__(self, embedding=False):
         super().__init__()
         net_configs = [
             # (layer_function, kernel, stride, num_filters)
@@ -144,20 +141,19 @@ class YAMNet(nn.Module):
             input_dim = output_dim
             self.layer_names.append(name)
         self.classifier = nn.Linear(input_dim, 521, bias=True)
+        self.embedding = embedding
         
     def forward(self, x, to_prob=False):
         x = torch.unsqueeze(x, dim=1)
         for name in self.layer_names:
             mod = getattr(self, name)
             x = mod(x)
-        x = F.adaptive_avg_pool2d(x, 1)
-        x = x.reshape(x.shape[0], -1) #(batch, 1024)
-        #x = self.classifier(x)
-        return x
 
-def yamnet(pretrained=True):
-    model = YAMNet()
-    if pretrained:
-        pass#model.load_state_dict(torch.load(get_current_path() + '/pretrained_models/yamnet.pth', map_location=torch.device('cpu')))
-    return model
+        if self.embedding == False:
+            x = F.adaptive_avg_pool2d(x, 1)
+            x = x.reshape(x.shape[0], -1) #(batch, 1024)
+            x = self.avgpool(x)
+            x = x.transpose(2, 3)
+            #x = self.classifier(x)
+        return x
 
