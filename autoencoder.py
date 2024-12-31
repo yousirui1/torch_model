@@ -40,7 +40,7 @@ class AutoEncoder(nn.Module):
         x = x.view(x.size(0), *self.input_shape)  # 还原成原始形状
         return x
 
-if __name__ == '__main__':
+def autoencoder_test():
     # 设置超参数
     input_shape = (128, 96)
     hidden_dims = [128, 128, 64, 64, 32]  # 多层隐含层

@@ -152,8 +152,8 @@ class YAMNet(nn.Module):
         if self.embedding == False:
             x = F.adaptive_avg_pool2d(x, 1)
             x = x.reshape(x.shape[0], -1) #(batch, 1024)
-            x = self.avgpool(x)
-            x = x.transpose(2, 3)
+            #x = self.avgpool(x)
+            #x = x.transpose(2, 3)
             #x = self.classifier(x)
         return x
 

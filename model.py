@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 from typing import Dict, Optional, Tuple
@@ -7,6 +8,8 @@ from efficient import Efficient
 from pool import Pooling
 from torchinfo import summary
 #from utils import *
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
 
 class Model(nn.Module):
     def __init__(
@@ -67,7 +70,8 @@ def get_model(batch_size,
                 embedding_conf = None,
                 classifier = None, 
                 classifier_conf = None,
-                activation = None
+                activation = None,
+                pretrained = False,
             ):
 
     pre_weight_path = None
@@ -76,8 +80,10 @@ def get_model(batch_size,
         embedding = FSMN()
     elif embedding == "yamnet":
         embedding = YAMNet(**embedding_conf)
+        pre_weight_path = current_dir + '/pretrained_models/yamnet.pth'
     elif embedding == "efficient":
         embedding = Efficient(**embedding_conf)
+        pre_weight_path = current_dir + '/pretrained_models/fsd_efficient.pth'
     elif embedding == "autoencoder":
         embedding = Autoencoder(**embedding_conf)
     elif embedding == "paraformer":
@@ -87,11 +93,12 @@ def get_model(batch_size,
     elif embedding == "ParaformerSANMDecoder":
         embedding = ParaformerSANMDecoder(**embedding_conf)
 
-    #if embedding_conf.get("") 
-        #backbone.load_state_dict(torch.load(pretrain_model_path, map_location='cpu'))
+    if pretrained and pre_weight_path is not None:
+        print("embedding load weight ", pre_weight_path)
+        embedding.load_state_dict(torch.load(pre_weight_path, map_location='cpu'))
 
     if classifier == 'linear':
-        classifier = nn.Linear(backbone.classifier.in_features, config.odim, bias=True)
+        classifier = nn.Linear(embedding.classifier.in_features, odim, bias=True)
     elif classifier == 'pool':
         classifier = Pooling(**classifier_conf).get_model()
     elif classifier == 'attention':
