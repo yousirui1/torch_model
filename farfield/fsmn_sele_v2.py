@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from fsmn import AffineTransform, Fsmn, LinearTransform, RectifiedLinear
-from model_def import HEADER_BLOCK_SIZE, ActivationType, LayerType, f32ToI32
+from .fsmn import AffineTransform, Fsmn, LinearTransform, RectifiedLinear
+from .model_def import HEADER_BLOCK_SIZE, ActivationType, LayerType, f32ToI32
 
 class FSMNUnit(nn.Module):
     """
@@ -79,6 +79,7 @@ class FSMNSeleNetV2(nn.Module):
 
         self.featmap = AffineTransform(input_dim, linear_dim)
 
+        self.pool = nn.MaxPool2d((1, 1), stride=(1, 1))
         self.mem = []
 
         for i in range(fsmn_layers):
@@ -104,8 +105,9 @@ class FSMNSeleNetV2(nn.Module):
 
             # perform channel selection
             if i == self.sele_layer:
-                pool = nn.MaxPool2d((y.shape[2], 1), stride=(y.shape[2], 1))
-                y = pool(y)
+                #pool = nn.MaxPool2d((y.shape[2], 1), stride=(y.shape[2], 1))
+                #y = pool(y)
+                y = self.pool(y)
 
             x = y
 

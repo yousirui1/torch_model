@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from fsmn import AffineTransform, Fsmn, LinearTransform, RectifiedLinear
-from model_def import HEADER_BLOCK_SIZE, ActivationType, LayerType, f32ToI32
+from .fsmn import AffineTransform, Fsmn, LinearTransform, RectifiedLinear
+from .model_def import HEADER_BLOCK_SIZE, ActivationType, LayerType, f32ToI32
 
 class DFSMNUnit(nn.Module):
     """
