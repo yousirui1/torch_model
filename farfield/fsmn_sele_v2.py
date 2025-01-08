@@ -56,6 +56,7 @@ class FSMNSeleNetV2(nn.Module):
     """
     def __init__(self,
                 input_dim=120,
+                channel=1,
                 linear_dim=128,
                 proj_dim=64,
                 lorder=20,
@@ -79,7 +80,8 @@ class FSMNSeleNetV2(nn.Module):
 
         self.featmap = AffineTransform(input_dim, linear_dim)
 
-        self.pool = nn.MaxPool2d((1, 1), stride=(1, 1))
+        # y.shape[2] 
+        self.pool = nn.MaxPool2d((channel, 1), stride=(channel, 1))
         self.mem = []
 
         for i in range(fsmn_layers):
@@ -89,7 +91,8 @@ class FSMNSeleNetV2(nn.Module):
 
         self.decision = AffineTransform(linear_dim, num_syn)
 
-    def forward(self, input):
+    def forward(self, input, input_length=None):
+        # [batch, time, channel, feature]
         # multi-channel feature mapping
         if torch.cuda.is_available():
             x = torch.zeros(input.shape[0], input.shape[1], input.shape[2],
@@ -100,19 +103,21 @@ class FSMNSeleNetV2(nn.Module):
         for n in range(input.shape[2]):
             x[:, :, n, :] = F.relu(self.featmap(input[:, :, n, :]))
 
+
         for i, unit in enumerate(self.mem):
             y = unit(x)
 
             # perform channel selection
             if i == self.sele_layer:
-                #pool = nn.MaxPool2d((y.shape[2], 1), stride=(y.shape[2], 1))
-                #y = pool(y)
                 y = self.pool(y)
 
             x = y
 
         # remove channel dimension
+        #print(y.shape)
+        #y = y.reshape(1, -1)
         y = torch.squeeze(y, -2)
+        print(y.shape)
         z = self.decision(y)
 
         return z

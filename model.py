@@ -7,6 +7,9 @@ from yamnet import YAMNet
 from efficient import Efficient
 from pool import Pooling
 from torchinfo import summary
+from farfield.fsmn_sele_v2 import FSMNSeleNetV2
+from farfield.fsmn_sele_v3 import FSMNSeleNetV3
+from nkf import KGNet
 #from utils import *
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -56,7 +59,7 @@ class Model(nn.Module):
             if isinstance(self.classifier, nn.ModuleList):
                 out = [mod(x, n_wins) for mod in self.classifier]
                 x = torch.cat(out, dim=1)
-            else:
+            elif isinstance(self.classifier, nn.Module):
                 x = self.classifier(x)
 
         if self.activation is not None:
@@ -78,6 +81,12 @@ def get_model(batch_size,
 
     if embedding == "fsmn":
         embedding = FSMN()
+    elif embedding == 'fsmn_sele_v2':
+        embedding = FSMNSeleNetV2(**embedding_conf)
+    elif embedding == 'fsmn_sele_v3':
+        embedding = FSMNSeleNetV3(**embedding_conf)
+    elif embedding == 'kgnet':
+        embedding = KGNet(**embedding_conf)
     elif embedding == "yamnet":
         embedding = YAMNet(**embedding_conf)
         pre_weight_path = current_dir + '/pretrained_models/yamnet.pth'
@@ -113,6 +122,6 @@ def get_model(batch_size,
         activation = torch.sigmoid
     
     model = Model(idim, odim, embedding, classifier, activation)
-    summary(model, input_shape=[(1, 100, idim), (10)])
+    #summary(model, input_shape=[(1, 100, idim), (10)])
     return model
 

@@ -42,12 +42,12 @@ class DFSMNUnit(nn.Module):
 
         # add skip connection for matched data
         if x.shape[-1] == out3.shape[-1]:
-            out = x + out3
+            out3 = x + out3
 
         if self.debug:
-            self.dataout = out
+            self.dataout = out3
 
-        return out
+        return out3
 
     def print_model(self):
         self.expand.print_model()
@@ -97,7 +97,7 @@ class FSMNSeleNetV3(nn.Module):
         self.expand2 = AffineTransform(proj_dim, linear_dim)
         self.decision = AffineTransform(linear_dim, num_syn)
 
-    def forward(self, input):
+    def forward(self, input, input_length=None):
         # multi-channel temp space, [batch, time, channel, feature]
         if torch.cuda.is_available():
             x = torch.zeros(input.shape[0], input.shape[1], input.shape[2],

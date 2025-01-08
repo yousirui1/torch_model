@@ -63,7 +63,8 @@ class KGNet(nn.Module):
         self.h_ri = torch.zeros(self.rnn_layers, batch_size, self.rnn_dim).to(device=device)
         self.h_ii = torch.zeros(self.rnn_layers, batch_size, self.rnn_dim).to(device=device)
 
-    def forward(self, input_feature):
+    def forward(self, input_feature, input_length=None):
+        #print(input_feature.shape)
         feat = self.fc_in(input_feature).unsqueeze(1)
         rnn_out, self.h_rr, self.h_ir, self.h_ri, self.h_ii = self.complex_gru(feat, self.h_rr, self.h_ir, self.h_ri, self.h_ii)
         kg = self.fc_out(rnn_out).permute(0, 2, 1)
