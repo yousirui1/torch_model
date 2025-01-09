@@ -123,7 +123,8 @@ class FSMNSeleNetV2(nn.Module):
         y = self.avg_pool(y.transpose(1, 2)).transpose(1, 2)
         #y = self.avgpool(y)
         #print(y.shape)
-        z = self.decision(y).squeeze(0)
+        z = self.decision(y).squeeze(1)
+        
 
         return z
 
