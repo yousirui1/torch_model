@@ -117,7 +117,6 @@ class FSMNSeleNetV2(nn.Module):
         #print(y.shape)
         #y = y.reshape(1, -1)
         y = torch.squeeze(y, -2)
-        print(y.shape)
         z = self.decision(y)
 
         return z
