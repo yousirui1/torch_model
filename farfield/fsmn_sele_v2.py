@@ -89,8 +89,7 @@ class FSMNSeleNetV2(nn.Module):
             self.mem.append(unit)
             self.add_module('mem_{:d}'.format(i), unit)
 
-        #self.avgpool = nn.AvgPool2d((4, 1))
-        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        # to do
         self.decision = AffineTransform(linear_dim, num_syn)
 
     def forward(self, input, input_length=None):
@@ -105,7 +104,6 @@ class FSMNSeleNetV2(nn.Module):
         for n in range(input.shape[2]):
             x[:, :, n, :] = F.relu(self.featmap(input[:, :, n, :]))
 
-
         for i, unit in enumerate(self.mem):
             y = unit(x)
 
@@ -116,16 +114,14 @@ class FSMNSeleNetV2(nn.Module):
             x = y
 
         # remove channel dimension
-        #print(y.shape)
-        #y = y.reshape(1, -1)
         y = torch.squeeze(y, -2)
-        #print(y.shape)
-        y = self.avg_pool(y.transpose(1, 2)).transpose(1, 2)
-        #y = self.avgpool(y)
-        #print(y.shape)
-        z = self.decision(y).squeeze(1)
-        
 
+        # to do
+        y = y.transpose(1, 2).unsqueeze(-1)
+        y = F.adaptive_avg_pool2d(y, (1, 1))
+        y = y.view(y.shape[0], -1)
+
+        z = self.decision(y)
         return z
 
     def print_model(self):
