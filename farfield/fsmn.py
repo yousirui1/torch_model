@@ -94,7 +94,7 @@ class Fsmn(nn.Module):
         self.debug = False
         self.dataout = None
 
-    def forward(self, x):
+    def forward(self, x, x_len):
         x = torch.unsqueeze(x, 1)
         x_per = x.permute(0, 3, 2, 1)
 

@@ -13,6 +13,17 @@ from sanm.attention import (
     MultiHeadedAttentionCrossAtt,
 )
 
+#to do 
+def sequence_mask(lengths, maxlen=None, dtype=torch.float32, device=None):
+    if maxlen is None:
+        maxlen = int(lengths.max()) # to do  maxlen = lengths.max()
+    row_vector = torch.arange(0, maxlen, 1).to(lengths.device)
+    matrix = torch.unsqueeze(lengths, dim=-1)
+    mask = row_vector < matrix
+    mask = mask.detach()
+
+    return mask.type(dtype).to(device) if device is not None else mask.type(dtype)
+
 
 class DecoderLayerSANM(torch.nn.Module):
     """
@@ -271,10 +282,10 @@ class ParaformerSANMDecoder(BaseTransformerDecoder):
             olens: (batch, )
         """
         tgt = ys_in_pad
-        tgt_mask = myutils.sequence_mask(ys_in_lens, device=tgt.device)[:, :, None]
+        tgt_mask = sequence_mask(ys_in_lens, device=tgt.device)[:, :, None]
 
         memory = hs_pad
-        memory_mask = myutils.sequence_mask(hlens, device=memory.device)[:, None, :]
+        memory_mask = sequence_mask(hlens, device=memory.device)[:, None, :]
         if chunk_mask is not None:
             memory_mask = memory_mask * chunk_mask
             if tgt_mask.size(1) != memory_mask.size(1):
@@ -297,17 +308,4 @@ class ParaformerSANMDecoder(BaseTransformerDecoder):
             x = self.output_layer(hidden)
             return x, hidden, olens
         return hidden, olens
-
-
-
-
-
-
-
-
-
-
-
-
-
 

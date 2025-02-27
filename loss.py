@@ -3,6 +3,22 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+class mae_loss(nn.Module):
+
+    def __init__(self, normalize_length=False):
+        super(mae_loss, self).__init__()
+        self.normalize_length = normalize_length
+        self.criterion = torch.nn.L1Loss(reduction='sum')
+
+    def forward(self, token_length, pre_token_length):
+        loss_token_normalizer = token_length.size(0)
+        if self.normalize_length:
+            loss_token_normalizer = token_length.sum().type(torch.float32)
+        loss = self.criterion(token_length, pre_token_length)
+        loss = loss / loss_token_normalizer
+        return loss
+
+
 def ctc_loss(logits: torch.Tensor,
              target: torch.Tensor,
              logits_lengths: torch.Tensor,

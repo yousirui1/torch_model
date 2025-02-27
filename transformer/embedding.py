@@ -507,4 +507,3 @@ class ScaledSinuEmbedding(torch.nn.Module):
         sinu = einsum("i , j -> i j", t, self.inv_freq)
         emb = torch.cat((sinu.sin(), sinu.cos()), dim=-1)
         return emb * self.scale
-

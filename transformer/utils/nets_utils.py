@@ -197,7 +197,7 @@ def make_pad_mask(lengths, xs=None, length_dim=-1, maxlen=None):
             maxlen = xs.size(length_dim)
     else:
         assert xs is None
-        assert maxlen >= int(max(lengths))
+        assert maxlen >= int(max(lengths)) # to do
 
     seq_range = torch.arange(0, maxlen, dtype=torch.int64)
     seq_range_expand = seq_range.unsqueeze(0).expand(bs, maxlen)
@@ -331,6 +331,29 @@ def mask_by_length(xs, lengths, fill=0):
     for i, l in enumerate(lengths):
         ret[i, :l] = xs[i, :l]
     return ret
+
+def th_accuracy(pad_outputs, pad_targets, ignore_label):
+    '''
+    Calculate accuracy.
+
+    Args:
+        pad_outputs(Tensor): Prediction tensors (B * Lmax, D).
+        pad_targets(LongTensor): Target label tensor (B, Lmax, D).
+        ignore_label(int): Ignore label id.
+
+    Returns:
+        float: Accuracy value
+    '''
+    pad_pred = pad_outputs.view(
+        pad_targets.size(0), pad_targets.size(1), pad_outputs.size(1)
+    ).argmax(2)
+    mask = pad_targets != ignore_label
+    numerator = torch.sum(
+        pad_pred.masked_select(mask) == pad_targets.masked_select(mask)
+    )
+    denominator = torch.sum(mask)
+    return float(numerator) / float(denominator)
+
 
 def to_torch_tensor(x):
     """Change to torch.Tensor or ComplexTensor from numpy.ndarray.
