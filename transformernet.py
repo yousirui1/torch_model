@@ -113,16 +113,15 @@ class Transformer(torch.nn.Module):
             ys_pad: torch.Tensor,
             ys_pad_len: torch.Tensor
     ):
-        #print(decoder_out)
-        #print(decoder_token_length)
-        #print(ys_pad)
         # ys_pad 对齐 ys_pad_len
         if self.predictor_bias == 1:
-    #        _,ys_pad = add_sos_eos(ys_pad, self.sos, self.eos, self.ignore_id)
-            ys_pad = add_sos_eos(ys_pad, decoder_token_length[decoder_token_length.argmax(0)], self.sos, self.eos, self.ignore_id)
-    #        def add_sos_eos(ys_pad, max_pad_len, sos, eos, ignore_id):
+            ys_pad = add_sos_eos(ys_pad, int(decoder_token_length[decoder_token_length.argmax(0)].item()), self.sos, self.eos, self.ignore_id)
+
+        
 
         loss_pre = self.criterion_pre(decoder_token_length.type_as(ys_pad_len), ys_pad_len)
+
+        ys_pad = ys_pad.to(decoder_out.device)
 
         loss_att = self.criterion_att(decoder_out, ys_pad)
 

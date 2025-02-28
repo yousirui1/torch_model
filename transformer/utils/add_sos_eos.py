@@ -36,18 +36,18 @@ def add_sos_eos(ys_pad, max_pad_len, sos, eos, ignore_id):
     sos = torch.tensor([sos])
     eos = torch.tensor([eos])
 
-    if max_pad_len == 0:
-        max_pad_len = max(y.size(0) for y in ys_pad)
+    #if max_pad_len == 0:
+    #    max_pad_len = max(y.size(0) for y in ys_pad)
     
     y_out = [torch.cat([sos, torch.as_tensor(y), eos], dim=0) for y in ys_pad]
 
     n_batch = len(y_out)
-    pad = y_out[0].new(n_batch, int(max_pad_len.item()), *y_out[0].size()[1:]).fill_(ignore_id)
+    pad = y_out[0].new(n_batch, max_pad_len, *y_out[0].size()[1:]).fill_(ignore_id)
 
     for i in range(n_batch):
         # to do
         if y_out[i].size(0) > max_pad_len:
-            pad[i, : max_pad_len] = y_out[i][0:max_pad_len]
+            pad[i, : max_pad_len] = y_out[i][:max_pad_len]
         else:
             pad[i, : y_out[i].size(0)] = y_out[i]
 
