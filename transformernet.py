@@ -94,15 +94,16 @@ class Transformer(torch.nn.Module):
             #
             #)
             pass
-
         # predictor
         predictor_outs = self.calc_predictor(encoder_out, encoder_out_lens)
+
         pre_acoustic_embeds, pre_token_length, alphas, pre_peak_index = (
             predictor_outs[0],
             predictor_outs[1],
             predictor_outs[2],
             predictor_outs[3],
         )
+        #print('pre_token_length', pre_token_length)
         decoder_out, ys_pad_lens = self.decoder(encoder_out, encoder_out_lens, pre_acoustic_embeds, pre_token_length)
 
         return decoder_out, ys_pad_lens
@@ -117,7 +118,6 @@ class Transformer(torch.nn.Module):
         if self.predictor_bias == 1:
             ys_pad = add_sos_eos(ys_pad, int(decoder_token_length[decoder_token_length.argmax(0)].item()), self.sos, self.eos, self.ignore_id)
 
-        
 
         loss_pre = self.criterion_pre(decoder_token_length.type_as(ys_pad_len), ys_pad_len)
 

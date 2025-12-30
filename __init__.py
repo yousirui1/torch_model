@@ -5,5 +5,12 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 os.sys.path.append(current_dir)
 
 from model import *
+from .fsmn_vad_streaming.encoder import FSMN, FSMNExport
+
+ENCODER_CLASSES = {
+    "FSMN": FSMN,
+    "FSMNExport": FSMNExport,
+}
+
 
 

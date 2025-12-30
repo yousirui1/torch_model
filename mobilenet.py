@@ -6,10 +6,10 @@ from torchinfo import summary
 import torch.nn.functional as F
 
 class MobileNetV2(nn.Module):
-    def __init__(self, input_dim, label_dim=527, pretrain=True, activation = 'sigmoid'):
+    def __init__(self, label_dim=527, pretrain=True, activation = 'sigmoid'):
         super(MobileNetV2, self).__init__()
 
-        self.input_dim = input_dim
+        #self.input_dim = input_dim
         self.model = mobilenet_v2(pretrained=pretrain)
 
         self.model.features[0][0] = torch.nn.Conv2d(1, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
@@ -18,16 +18,23 @@ class MobileNetV2(nn.Module):
 
     def forward(self, x):
         # expect input x = (batch_size, time_frame_num, frequency_bins), e.g., (12, 1024, 128)
-        if len(self.input_dim) == 2:
-            x = x.view(1, 1, self.input_dim[0], self.input_dim[1])
-        elif len(self.input_dim) == 3:
-            x = x.view(self.input_dim[0], 1, self.input_dim[1], self.input_dim[2])
-        #x = x.unsqueeze(1)
+        #if len(self.input_dim) == 2:
+            #x = x.view(1, 1, self.input_dim[0], self.input_dim[1])
+            #x = x.view(1, 1, x.shape[0], x.shape[1])
+        #elif len(self.input_dim) == 3:
+            #x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
+
+        #x = x.view(x.shape[0], 1, x.shape[1], x.shape[2])
+        x = x.unsqueeze(1)
         x = x.transpose(2, 3)
         if self.activation == 'sigmoid':
             out = torch.sigmoid(self.model(x))
         elif self.activation == 'softmax':
             out = F.softmax(self.model(x), dim=1)
+        else:
+            x = self.model(x)
+            x = F.adaptive_avg_pool2d(x, 1)
+            out = x.reshape(x.shape[0], -1)
         return out
 
 if __name__ ==  '__main__':
